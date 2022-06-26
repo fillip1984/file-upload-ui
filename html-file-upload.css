@@ -1,0 +1,4 @@
+button:disabled {
+    pointer-events: initial !important;
+    cursor: not-allowed;
+}

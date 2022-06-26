@@ -1,0 +1,153 @@
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Upload</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css"
+        integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.3/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="html-file-upload.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"
+        defer></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="html-file-upload.js"></script>
+</head>
+
+<body>
+    <div id="app" class="d-flex flex-column bg-light h-100 overflow-hidden" x-data>
+        <h1 class="bg-light p-2">Electronic Claim File Upload (ECF)</h1>
+        <div id="top-row" class="d-flex p-2">
+            <div id="actions-container" class="vstack gap-2 me-4 justify-content-center" style="flex-grow: 1">
+                <button class="btn btn-lg btn-primary" type="button" @click="$store.uiState.handleAddClick()">
+                    <i class="icon bi-plus"></i>
+                    Add
+                </button>
+                <button class="btn btn-lg btn-secondary" type="button" @click="$store.uiState.handleRemoveClick()"
+                    :disabled="!$store.uiState.handleRemoveState()">
+                    <i class="icon bi-trash"></i>
+                    Remove
+                </button>
+                <button class="btn btn-lg btn-danger" type="button" @click="$store.uiState.handleExitClick()">
+                    <i class="bi bi-box-arrow-left"></i>
+                    Exit
+                </button>
+                <button class="btn btn-lg btn-primary" type="button" @click="$store.uiState.handleUploadClick()"
+                    :disabled="!$store.uiState.handleUploadState()">
+                    <i class="icon bi-upload"></i>
+                    Upload
+                </button>
+            </div>
+
+            <div id="meta-data-container" class="vstack gap-2" style="flex-grow: 5">
+                <div>
+                    <label for="claimRelationSelect" class="form-label">Claim Relationship</label>
+                    <select id="claimRelationSelect" class="form-select form-select-lg" required
+                        x-model="$store.uiState.claimRelation">
+                        <option value="">&lt;None Selected&gt;</option>
+                        <option value="claim">Claim</option>
+                        <option value="exposure-1">Exposure 1</option>
+                        <option value="exposure-2">Exposure 2</option>
+                        <option value="litigation-general">Litigation - General</option>
+                        <option value="suite-12345" data-suit-no="12345">Law Suit No. 12345</option>
+                        <option value="SIU">SIU</option>
+                        <option value="Subrogation">Subrogation</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="ownerSelect" class="form-label">Owner</label>
+                    <select id="ownerSelect" class="form-select form-select-lg" required x-model="$store.uiState.owner">
+                        <option value="">&lt;None Selected&gt;</option>
+                        <option value="owner-1" data-owner-id="1">Phillip Williams</option>
+                        <option value="owner-2" data-owner-id="2">Clara Heinz</option>
+                        <option value="owner-3" data-owner-id="3">Someone else</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="documentTypeSelect" class="form-label">Document Type</label>
+                    <select id="documentTypeSelect" class="form-select form-select-lg" required
+                        x-model="$store.uiState.documentType">
+                        <option value="">&lt;None Selected&gt;</option>
+                        <option value="photos">Photos</option>
+                        <option value="correspondence">Correspondence</option>
+                        <option value="misc">Miscellaneous</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="dateReceivedPicker" class="form-label">Date Received</label>
+                    <div class="input-group">
+                        <input type="date" min="2022-05-01" max="2022-06-30" id="dateReceivedPicker"
+                            class="form-control" x-model="$store.uiState.dateReceived" />
+                        <span class="input-group-text"><i class="icon bi-calendar2-event"></i></span>
+                    </div>
+                </div>
+
+                <div>
+                    <button class="btn btn-lg btn-primary" type="button" @click="!$store.uiState.handleApplyClick()"
+                        :disabled="!$store.uiState.handleApplyState()">Apply</button>
+                </div>
+
+                <input type="file" multiple class="d-none" id="hidden-file-selector"
+                    @change="$store.uiState.handleFileAdd($el)">
+
+            </div>
+        </div>
+
+        <div id="file-drop-container" class="border border-4 rounded m-2" style="flex-grow: 2;">
+            <!-- bootstrap d-flex class is clashing with alpine js x-show, had to switch over to binding on class -->
+            <!-- might be able to use x-if though... -->
+            <div :class="$store.uiState.files.length > 0 ? 'd-none' : 'd-flex flex-column mt-5 align-items-center'">
+                <i class="icon bi-files fs-1"></i>
+                <span class="fs-1">Drag and drop files here (drag and drop not working yet)</span>
+                <span>or click
+                    <button class="btn btn-lg btn-primary" @click="$store.uiState.handleAddClick()"><i
+                            class="icon bi-plus"></i> Add</button>
+                    to add files for upload</span></span>
+            </div>
+
+            <table :class="$store.uiState.files.length === 0 ? 'd-none' : 'table'">
+                <thead>
+                    <tr>
+                        <th><input type="checkbox" x-model="$store.uiState.selectAll"
+                                @change="$store.uiState.toggleSelectAll()">
+                        </th>
+                        <th>Type</th>
+                        <th>Claim Relationship</th>
+                        <th>Owner</th>
+                        <th>Document Type</th>
+                        <th>Comment</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <template x-for="file in $store.uiState.files" :key="file.name">
+                        <tr>
+                            <td>
+                                <input type="checkbox" x-model="file.selected">
+                            </td>
+                            <td x-text="file.type">
+                                </p>
+                            <td x-text="file.name">
+                                </p>
+                            <td x-text="file.claimRelation"></td>
+                            <std x-text="file.owner">
+                                </td>
+                                <td x-text="file.documentType"></td>
+                                <td><textarea x-model="file.comment"></textarea></td>
+                        </tr>
+                    </template>
+                </tbody>
+            </table>
+        </div>
+
+        <div id="footer" class="p-3 bg-light">Files:
+            <span x-text="$store.uiState.files.length"></span>
+        </div>
+
+    </div>
+</body>
+
+</html>
